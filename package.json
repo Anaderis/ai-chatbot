@@ -1,0 +1,21 @@
+{
+  "name": "chatbot-langchain-llama",
+  "version": "1.0.0",
+  "description": "Chatbot spécialisé en langues et traduction avec LangChain + LLaMA",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "dependencies": {
+    "@langchain/core": "^0.1.16",
+    "@langchain/openai": "^0.0.19",
+    "express": "^4.18.2",
+    "body-parser": "^1.20.2",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+}
