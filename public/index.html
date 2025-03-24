@@ -157,8 +157,6 @@
       }
     }
 
-
-    }
   </style>
 </head>
 <body>
@@ -175,6 +173,12 @@
 <script>
   const chatBox = document.getElementById("chat-box");
   const userInput = document.getElementById("user-input");
+  userInput.addEventListener("keydown", function (e) {
+    if (e.key === "Enter") {
+      sendMessage();
+    }
+  });
+
   const memory = [
     { role: "system", content: "Tu es un assistant spécialisé en langues et traductions. Tu peux traduire des phrases, expliquer des règles grammaticales, comparer des langues, ou aider à apprendre une langue étrangère. Tu dois refuser poliment toute question qui ne concerne pas les langues ou la traduction." }
   ];
