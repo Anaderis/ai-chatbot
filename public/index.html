@@ -4,59 +4,166 @@
   <meta charset="UTF-8">
   <title>Language & Translation Chatbot</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0; padding: 0;
-      background: #f0f2f5;
+    * {
+      box-sizing: border-box;
     }
+
+    .title {
+      position: absolute;
+      top: 20px;
+      font-size: 36px;
+      color: #ffffff;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+      font-weight: bold;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: url("chopper.jpg") no-repeat center center fixed;
+      background-size: cover;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
     .chat-container {
+      width: 90%;
       max-width: 600px;
-      margin: 50px auto;
-      background: #fff;
-      border-radius: 10px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      height: 80vh;
+      background-color: #fff;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
       overflow: hidden;
     }
+
     .chat-box {
+      flex: 1;
       padding: 20px;
-      height: 400px;
       overflow-y: auto;
+      display: flex;
+      flex-direction: column;
     }
+
     .message {
       margin: 10px 0;
+      max-width: 80%;
+      padding: 12px 16px;
+      border-radius: 20px;
+      line-height: 1.4;
+      font-size: 15px;
+      word-wrap: break-word;
     }
+
     .user {
-      text-align: right;
-      color: #2c3e50;
+      background-color: #f1f0f0;
+      align-self: flex-start; /* aligné à gauche */
+      color: #333;
     }
+
     .bot {
-      text-align: left;
-      color: #16a085;
+      background-color: #e0f7fa;
+      align-self: flex-end; /* aligné à droite */
+      color: #00796b;
     }
+
     .input-box {
       display: flex;
-      border-top: 1px solid #ddd;
+      padding: 15px;
+      border-top: 1px solid #eee;
+      background-color: #fafafa;
     }
+
     input[type="text"] {
       flex: 1;
-      padding: 15px;
-      border: none;
+      padding: 12px 16px;
+      border-radius: 30px;
+      border: 1px solid #ccc;
+      font-size: 14px;
       outline: none;
-      font-size: 16px;
     }
+
     button {
-      padding: 15px;
-      background: #16a085;
-      color: white;
+      margin-left: 10px;
+      padding: 12px 20px;
       border: none;
+      border-radius: 30px;
+      background: #4caf50;
+      color: white;
+      font-weight: bold;
       cursor: pointer;
+      transition: background 0.3s ease;
     }
+
     button:hover {
-      background: #138d75;
+      background: #388e3c;
+    }
+
+    /* Scrollbar style */
+    .chat-box::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .chat-box::-webkit-scrollbar-thumb {
+      background-color: rgba(0, 0, 0, 0.1);
+      border-radius: 3px;
+    }
+
+    .typing {
+      align-self: flex-end;
+      background-color: #e0f7fa;
+      color: #00796b;
+      padding: 12px 16px;
+      border-radius: 20px;
+      max-width: 80px;
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      gap: 6px;
+      height: 24px;
+    }
+
+    .typing span {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      background-color: #00796b;
+      border-radius: 50%;
+      animation: bounce 1.4s infinite ease-in-out both;
+    }
+
+    .typing span:nth-child(1) {
+      animation-delay: 0s;
+    }
+    .typing span:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+    .typing span:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    @keyframes bounce {
+      0%, 80%, 100% {
+        transform: scale(0.8);
+        opacity: 0.3;
+      }
+      40% {
+        transform: scale(1.2);
+        opacity: 1;
+      }
+    }
+
+
     }
   </style>
 </head>
 <body>
+<h1 class="title">Languages ToolBox</h1>
+
 <div class="chat-container">
   <div class="chat-box" id="chat-box"></div>
   <div class="input-box">
@@ -88,6 +195,13 @@
     memory.push({ role: "user", content: text });
     userInput.value = "";
 
+    // 👉 Ajouter bulle de chargement
+    const typingBubble = document.createElement("div");
+    typingBubble.className = "typing";
+    typingBubble.innerHTML = "<span>.</span><span>.</span><span>.</span>";
+    chatBox.appendChild(typingBubble);
+    chatBox.scrollTop = chatBox.scrollHeight;
+
     try {
       const response = await fetch("/chat/completions", {
         method: "POST",
@@ -97,7 +211,9 @@
 
       const data = await response.json();
 
-      // ✅ N'ajouter un message assistant que si une réponse valide est reçue
+      // 👉 Supprimer la bulle de chargement
+      typingBubble.remove();
+
       if (data.reply) {
         const botReply = data.reply;
         memory.push({ role: "assistant", content: botReply });
@@ -108,9 +224,11 @@
 
     } catch (error) {
       console.error("Erreur réseau :", error);
+      typingBubble.remove();
       addMessage("[Erreur de communication avec le serveur.]", "bot");
     }
   }
+
 
 </script>
 </body>
