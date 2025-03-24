@@ -1,44 +1,44 @@
 import express from "express";
 import bodyParser from "body-parser";
 import dotenv from "dotenv";
-import fetch from "node-fetch"; // npm install node-fetch si besoin
+import { ChatOpenAI } from "@langchain/openai";
+import { HumanMessage, AIMessage, SystemMessage } from "@langchain/core/messages";
 
 dotenv.config();
 
 const app = express();
 app.use(bodyParser.json());
-app.use(express.static("public")); // Sert ton index.html
+app.use(express.static("public")); // sert index.html depuis /public
 
-const baseURL = "https://llama-3-3-70b-instruct.endpoints.kepler.ai.cloud.ovh.net/api/openai_compat/v1";
+const chat = new ChatOpenAI({
+    openAIApiKey: process.env.OPENAI_API_KEY,
+    model: "Meta-Llama-3_3-70B-Instruct",
+    configuration: {
+        baseURL: "https://llama-3-3-70b-instruct.endpoints.kepler.ai.cloud.ovh.net/api/openai_compat/v1",
+    },
+});
+
+// Convertit les messages bruts {role, content} en objets LangChain
+function formatMessages(memory) {
+    return memory.map((msg) => {
+        if (msg.role && msg.role === "user") return new HumanMessage(msg.content);
+        if (msg.role && msg.role === "assistant") return new AIMessage(msg.content);
+        if (msg.role && msg.role === "system") return new SystemMessage(msg.content);
+        throw new Error("Rôle inconnu : " + msg.role);
+    });
+}
 
 app.post("/chat/completions", async (req, res) => {
-    const memory = req.body.memory;
+    const rawMemory = req.body.memory;
 
     try {
-        const response = await fetch(`${baseURL}/chat/completions`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`
-            },
-            body: JSON.stringify({
-                model: "Meta-Llama-3_3-70B-Instruct",
-                messages: memory
-            })
-        });
-
-        const data = await response.json();
-
-        if (data?.choices?.[0]?.message?.content) {
-            res.json({ reply: data.choices[0].message.content });
-        } else {
-            console.error("Réponse invalide :", data);
-            res.status(500).json({ error: "Pas de réponse valide du modèle." });
-        }
-
+        const formattedMessages = formatMessages(rawMemory);
+        const response = await chat.invoke(formattedMessages);
+        console.log(response);
+        res.json({ reply: response.content });
     } catch (error) {
-        console.error("Erreur API directe :", error);
-        res.status(500).json({ error: "Erreur de communication avec l'API." });
+        console.error("Erreur LLM complète :", error);
+        res.status(500).json({ error: "Erreur côté LLM." });
     }
 });
 
